@@ -42,6 +42,66 @@ class Planet(db.Model):
             "name": self.name
         }
 
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            print(error.args)
+            return False
+
+    def update(self, name):
+        self.name = name
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            print(error.args)
+            return False
+
+class People(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+
+    def __init__(self, name):
+        self.name = name
+    
+    @classmethod
+    def create(cls, name):
+        new_planet = cls(name)
+        db.session.add(new_planet)
+        try:
+            db.session.commit()
+            return new_planet
+        except Exception as error:
+            print(error.args)
+            return None
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            print(error.args)
+            return False
+
+    def update(self, name):
+        self.name = name
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            print(error.args)
+            return False
+
 
 # class Planet_Favorite(db.Model):
 #     id = Column(Integer, primary_key=True)

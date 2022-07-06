@@ -53,6 +53,21 @@ def handle_planets():
             return jsonify('Something goes wrong =('), 400
         return jsonify(new_planet.serialize()), 201
 
+@app.route('/planets/<int:planet_id>', methods=['DELETE', 'GET', 'PATCH'])
+def handle_planet(planet_id):
+    planet = Planet.query.filter_by(id=planet_id).one_or_none()
+    if planet is None:
+        return jsonify("Planet not found"), 404
+    if request.method == 'GET':
+        return jsonify(planet.serialize()),200
+    elif request.method == 'DELETE':
+        delete = planet.delete()
+        if not delete: return jsonify('Something goes wrong 🤕️'), 500
+        return "", 204
+    else: 
+        body = request.json
+        planet.update(body["name"])
+        return jsonify(planet.serialize()), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
