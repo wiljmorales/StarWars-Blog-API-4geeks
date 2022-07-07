@@ -6,6 +6,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
+    favorite_planets = db.relationship('Planet_Favorite', back_populates="owner")
     # is_active = db.Column(db.Boolean(), unique=False, nullable=False)
 
     def __repr__(self):
@@ -21,6 +22,7 @@ class User(db.Model):
 class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
+    favorite = db.relationship('Planet_Favorite', back_populates='planet')
 
     def __init__(self, name):
         self.name = name
@@ -60,7 +62,7 @@ class Planet(db.Model):
             print(error.args)
             return False
 
-class People(db.Model):
+class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
 
@@ -69,11 +71,11 @@ class People(db.Model):
     
     @classmethod
     def create(cls, name):
-        new_planet = cls(name)
-        db.session.add(new_planet)
+        new_person = cls(name)
+        db.session.add(new_person)
         try:
             db.session.commit()
-            return new_planet
+            return new_person
         except Exception as error:
             print(error.args)
             return None
@@ -103,12 +105,12 @@ class People(db.Model):
             return False
 
 
-# class Planet_Favorite(db.Model):
-#     id = Column(Integer, primary_key=True)
-#     user_id = Column(Integer, ForeignKey('user.id'))
-#     user = relationship(User)
-#     planet_id = Column(Integer, ForeignKey('planet.id'))
-#     planet = relationship(Planet)
+class Planet_Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.relationship('User', back_populates='favorite_planets')
+    planet_id = db.Column(db.Integer, db.ForeignKey('planet.id'))
+    planet = db.relationship('Planet', back_populates='favorite')
 
 
 # class Character(db.Model):

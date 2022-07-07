@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet
+from models import db, User, Planet, Person
 #from models import Person
 
 app = Flask(__name__)
@@ -30,14 +30,14 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/users', methods=['GET'])
+def handle_users():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    all_users = User.query.all()
 
-    return jsonify(response_body), 200
+    return jsonify(
+        [user.serialize() for user in all_users]
+        ), 200
 
 @app.route('/planets', methods=['GET', 'POST'])
 def handle_planets():
@@ -53,7 +53,7 @@ def handle_planets():
             return jsonify('Something goes wrong =('), 400
         return jsonify(new_planet.serialize()), 201
 
-@app.route('/planets/<int:planet_id>', methods=['DELETE', 'GET', 'PATCH'])
+@app.route('/planets/<int:planet_id>', methods=['DELETE', 'GET', 'PUT'])
 def handle_planet(planet_id):
     planet = Planet.query.filter_by(id=planet_id).one_or_none()
     if planet is None:
@@ -68,6 +68,36 @@ def handle_planet(planet_id):
         body = request.json
         planet.update(body["name"])
         return jsonify(planet.serialize()), 200
+
+@app.route('/people', methods=['GET', 'POST'])
+def handle_people():
+    if request.method == 'GET':
+        people = Person.query.all()
+        return jsonify(
+            [person.serialize() for person in people]
+        ), 200
+    else:
+        body = request.json
+        new_person = Person.create(body["name"])
+        if new_person is None:
+            return jsonify('Something goes wrong =('), 400
+        return jsonify(new_person.serialize()), 201
+
+@app.route('/people/<int:person_id>', methods=['DELETE', 'GET', 'PUT'])
+def handle_person(person_id):
+    person = Person.query.filter_by(id=person_id).one_or_none()
+    if person is None:
+        return jsonify("Person not found"), 404
+    if request.method == 'GET':
+        return jsonify(person.serialize()),200
+    elif request.method == 'DELETE':
+        delete = person.delete()
+        if not delete: return jsonify('Something goes wrong 🤕️'), 500
+        return "", 204
+    else: 
+        body = request.json
+        person.update(body["name"])
+        return jsonify(person.serialize()), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
