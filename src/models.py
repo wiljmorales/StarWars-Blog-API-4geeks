@@ -7,6 +7,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     favorite_planets = db.relationship('Planet_Favorite', back_populates="owner")
+    favorite_people = db.relationship('FavoritePerson', back_populates='owner')
     # is_active = db.Column(db.Boolean(), unique=False, nullable=False)
 
     def __repr__(self):
@@ -65,6 +66,7 @@ class Planet(db.Model):
 class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
+    favorite = db.relationship('FavoritePerson', back_populates='person')
 
     def __init__(self, name):
         self.name = name
@@ -112,21 +114,23 @@ class Planet_Favorite(db.Model):
     planet_id = db.Column(db.Integer, db.ForeignKey('planet.id'))
     planet = db.relationship('Planet', back_populates='favorite')
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "owner": self.owner.serialize(),
+            "planet": self.planet.serialize()
+        }
 
-# class Character(db.Model):
-#     __tablename__ = 'character'
-#     id = db.Column(Integer, primary_key=True)
-#     name = db.Column(String(250), nullable=False)
+class FavoritePerson(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.relationship('User', back_populates='favorite_people')
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    person = db.relationship('Person', back_populates='favorite')
 
-# class Character_Favorite(db.Model):
-#     __tablename__ = 'character_favorite'
-#     # Here we define columns for the table address.
-#     # Notice that each column is also a normal Python instance attribute.
-#     id = db.Column(Integer, primary_key=True)
-#     user_id = db.Column(Integer, ForeignKey('user.id'))
-#     user = relationship(User)
-#     character_id = Column(Integer, ForeignKey('character.id'))
-#     character = relationship(Character)
-
-#     def to_dict(self):
-#         return {}
+    def serialize(self):
+        return {
+            "id": self.id,
+            "owner": self.owner.serialize(),
+            "person": self.person.serialize()
+        }

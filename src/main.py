@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, Person
+from models import db, User, Planet, Person, Planet_Favorite, FavoritePerson
 #from models import Person
 
 app = Flask(__name__)
@@ -38,6 +38,25 @@ def handle_users():
     return jsonify(
         [user.serialize() for user in all_users]
         ), 200
+
+@app.route('/users/<int:user_id>/favorites')
+def handle_favorites(user_id):
+    favorite_planets = Planet_Favorite.query.filter_by(user_id=user_id)
+    favorite_people = FavoritePerson.query.filter_by(user_id=user_id)
+    favorites = list(favorite_people) + list(favorite_planets)
+    return jsonify(
+        [fav.serialize() for fav in favorites]
+        ), 200
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def handle_favorite_planet(planet_id):
+    
+    body = request.json
+    new_favorite = Planet_Favorite(user_id=body['user_id'], planet_id =planet_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(new_favorite.serialize()), 201
+
 
 @app.route('/planets', methods=['GET', 'POST'])
 def handle_planets():
