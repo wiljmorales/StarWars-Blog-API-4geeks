@@ -57,6 +57,15 @@ def handle_favorite_planet(planet_id):
     db.session.commit()
     return jsonify(new_favorite.serialize()), 201
 
+@app.route('/favorite/people/<int:person_id>', methods=['POST'])
+def handle_favorite_person(person_id):
+    
+    body = request.json
+    new_favorite = FavoritePerson(user_id=body['user_id'], person_id =person_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(new_favorite.serialize()), 201
+
 
 @app.route('/planets', methods=['GET', 'POST'])
 def handle_planets():
