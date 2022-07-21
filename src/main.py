@@ -48,23 +48,43 @@ def handle_favorites(user_id):
         [fav.serialize() for fav in favorites]
         ), 200
 
-@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST', 'DELETE'])
 def handle_favorite_planet(planet_id):
-    
-    body = request.json
-    new_favorite = Planet_Favorite(user_id=body['user_id'], planet_id =planet_id)
-    db.session.add(new_favorite)
-    db.session.commit()
-    return jsonify(new_favorite.serialize()), 201
+    if request.method == 'POST':
+        body = request.json
+        new_favorite = Planet_Favorite(user_id=body['user_id'], planet_id =planet_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify(new_favorite.serialize()), 201
+    else:
+        # Para que funcione este edpoit hay que usar el id de la tabla planet__favorite
+        favorite = Planet_Favorite.query.filter_by(id=planet_id).one_or_none()
+        db.session.delete(favorite)
+        try:
+            db.session.commit()
+            return "", 204
+        except Exception as error:
+            print(error.args)
+            return jsonify('Something goes wrong 🤕️'), 500
 
-@app.route('/favorite/people/<int:person_id>', methods=['POST'])
+@app.route('/favorite/people/<int:person_id>', methods=['POST', 'DELETE'])
 def handle_favorite_person(person_id):
-    
-    body = request.json
-    new_favorite = FavoritePerson(user_id=body['user_id'], person_id =person_id)
-    db.session.add(new_favorite)
-    db.session.commit()
-    return jsonify(new_favorite.serialize()), 201
+    if request.method == 'POST':
+        body = request.json
+        new_favorite = FavoritePerson(user_id=body['user_id'], person_id =person_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify(new_favorite.serialize()), 201
+    else:
+        # Para que funcione este edpoit hay que usar el id de la tabla favorite_person
+        favorite = FavoritePerson.query.filter_by(id=person_id).one_or_none()
+        db.session.delete(favorite)
+        try:
+            db.session.commit()
+            return "", 204
+        except Exception as error:
+            print(error.args)
+            return jsonify('Something goes wrong 🤕️'), 500
 
 
 @app.route('/planets', methods=['GET', 'POST'])
@@ -126,6 +146,7 @@ def handle_person(person_id):
         body = request.json
         person.update(body["name"])
         return jsonify(person.serialize()), 200
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
